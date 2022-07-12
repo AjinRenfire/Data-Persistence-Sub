@@ -29,7 +29,7 @@ public class MainManager : MonoBehaviour
         const float step = 0.6f;
         int perLine = Mathf.FloorToInt(4.0f / step);
         string path = Application.persistentDataPath+"/savefile.json";
-       
+        m_pName = Manager.Instance.m_name;
 
         if(File.Exists(path)){
             SaveData data = JsonUtility.FromJson<SaveData>(File.ReadAllText(path));
@@ -77,18 +77,30 @@ public class MainManager : MonoBehaviour
 
     void AddPoint(int point)
     {
+        string path = Application.persistentDataPath+"/savefile.json";
+     
+        string s = "" ;
+        if(File.Exists(path)){
+            SaveData data = JsonUtility.FromJson<SaveData>(File.ReadAllText(path));
+            s = data.Name;
+        }else{
+            s = m_pName;
+        }
+       
         m_Points += point;
         ScoreText.text = $"Score : {m_Points}";
         if(m_Points >= m_hPoints){
             m_hPoints  = m_Points;
+            s = m_pName;
         }
-        Highscore.text = $"Best Score : {m_hPoints}";
+        Highscore.text = $"Best Score : {s} {m_hPoints}";
     }
 
     public void GameOver()
     {
         SaveData data = new SaveData();
         data.HighScore = m_hPoints;
+        data.Name= m_pName;
         string json = JsonUtility.ToJson(data);
         File.WriteAllText(Application.persistentDataPath+"/savefile.json",json);
         m_GameOver = true;
