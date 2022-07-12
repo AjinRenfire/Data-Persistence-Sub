@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using System.IO;
 
 public class MainManager : MonoBehaviour
 {
@@ -12,11 +13,14 @@ public class MainManager : MonoBehaviour
 
     public Text ScoreText;
     public GameObject GameOverText;
+    public Text Highscore;
     
     private bool m_Started = false;
     private int m_Points;
+    private int m_hPoints;
     
     private bool m_GameOver = false;
+    private string m_pName ;
 
     
     // Start is called before the first frame update
@@ -24,6 +28,14 @@ public class MainManager : MonoBehaviour
     {
         const float step = 0.6f;
         int perLine = Mathf.FloorToInt(4.0f / step);
+        string path = Application.persistentDataPath+"/savefile.json";
+       
+
+        if(File.Exists(path)){
+            SaveData data = JsonUtility.FromJson<SaveData>(File.ReadAllText(path));
+            m_hPoints = data.HighScore;
+            Highscore.text = $"Best Score : {data.HighScore}";
+        }
         
         int[] pointCountArray = new [] {1,1,2,2,5,5};
         for (int i = 0; i < LineCount; ++i)
@@ -52,6 +64,7 @@ public class MainManager : MonoBehaviour
                 Ball.transform.SetParent(null);
                 Ball.AddForce(forceDir * 2.0f, ForceMode.VelocityChange);
             }
+
         }
         else if (m_GameOver)
         {
@@ -66,10 +79,18 @@ public class MainManager : MonoBehaviour
     {
         m_Points += point;
         ScoreText.text = $"Score : {m_Points}";
+        if(m_Points >= m_hPoints){
+            m_hPoints  = m_Points;
+        }
+        Highscore.text = $"Best Score : {m_hPoints}";
     }
 
     public void GameOver()
     {
+        SaveData data = new SaveData();
+        data.HighScore = m_hPoints;
+        string json = JsonUtility.ToJson(data);
+        File.WriteAllText(Application.persistentDataPath+"/savefile.json",json);
         m_GameOver = true;
         GameOverText.SetActive(true);
     }
